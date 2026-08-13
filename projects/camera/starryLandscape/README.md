@@ -47,10 +47,10 @@
 
 実際に本スクリプトを使用して作成した星景タイムラプスです。
 
-[![2026/08/11 九重町_タデ原湿原  星景_比較明合成(Short)](https://i.ytimg.com/vi/TnF1-cwzSlk/0.jpg)](https://youtube.com/shorts/_sOnXRAFb44)
+[![2026/08/11 九重町_タデ原湿原  星景_比較明合成(Short)](https://i.ytimg.com/vi/TnF1-cwzSlk/0.jpg)](https://youtube.com/shorts/TnF1-cwzSlk)
 
 YouTube:
-https://youtube.com/shorts/_sOnXRAFb44
+https://youtube.com/shorts/TnF1-cwzSlk
 
 ### 作例の処理内容
 
