@@ -43,6 +43,23 @@
 
 ---
 
+## 作例
+
+実際に本スクリプトを使用して作成した星景タイムラプスです。
+
+[![2026/08/11 九重町_タデ原湿原  星景_比較明合成(Short)](https://i.ytimg.com/vi/TnF1-cwzSlk/0.jpg)](https://youtube.com/shorts/_sOnXRAFb44)
+
+YouTube:
+https://youtube.com/shorts/_sOnXRAFb44
+
+### 作例の処理内容
+
+- 入力画像：Sony α7R IIIで撮影した星景写真
+- 空：過去フレームまで累積比較明合成
+- 地上：現在のフレームを使用
+- 出力：H.264 / MP4
+- フレームレート：24fps
+
 ## 必要なソフトウェア
 
 ### Python
