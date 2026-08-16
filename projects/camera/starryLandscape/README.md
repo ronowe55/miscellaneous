@@ -43,6 +43,33 @@
 
 ---
 
+## 処理フロー
+
+```mermaid
+flowchart TD
+    Start([開始]) --> InputDir[JPEGディレクトリ / 連番範囲の指定]
+    InputDir --> Phase1[Phase 1: 元画像確認<br>ファイル存在 check / 解像度確認]
+    
+    Phase1 --> Phase2[Phase 2: 山の基準画像作成<br>最初の51枚の中央値から mountain_reference.jpg を生成]
+    Phase2 --> CheckRef{基準画像を確認}
+    
+    CheckRef -->|問題あり| Abort1[処理中断]
+    CheckRef -->|OK| Phase3[Phase 3: 山マスク作成<br>空と地上を分離する mountain_mask_preview.jpg を生成]
+    
+    Phase3 --> CheckMask{マスク画像を確認}
+    CheckMask -->|問題あり| Abort2[処理中断]
+    CheckMask -->|OK| Phase4[Phase 4: 5枚テスト合成<br>最初の5フレームでテストテスト画像 test_5frame_mountain.jpg を生成]
+    
+    Phase4 --> CheckTest{テスト画像を確認}
+    CheckTest -->|問題あり| Abort3[処理中断]
+    CheckTest -->|OK| Phase5[Phase 5: 全連番JPEG生成<br>空: 過去からの累積比較明合成<br>地上: 現在フレームを使用<br>star_frames/ 内に出力]
+    
+    Phase5 --> Phase6[Phase 6: MP4動画生成<br>FFmpeg を使用して H.264 MP4 動画を出力]
+    Phase6 --> End([完了: startrail_24fps.mp4])
+```
+
+---
+
 ## 作例
 
 実際に本スクリプトを使用して作成した星景タイムラプスです。
