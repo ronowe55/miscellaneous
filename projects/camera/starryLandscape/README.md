@@ -60,23 +60,16 @@ https://youtube.com/shorts/TnF1-cwzSlk
 - 出力：H.264 / MP4
 - フレームレート：24fps
 
+---
+
 ## 必要なソフトウェア
 
 ### Python
 Python 3.10以降を推奨します（開発環境：Python 3.12）。  
 [Python公式](https://www.python.org/)
 
-### Pillow
-JPEG画像の読み込み・保存、および画像処理に使用します。
-```bash
-pip install Pillow
-```
-
-### NumPy
-画像の画素単位の比較明合成や中央値計算に使用します。
-```bash
-pip install numpy
-```
+### pyenv / venv (推奨)
+Pythonのバージョン管理およびプロジェクト固有の仮想環境作成に使用します。
 
 ### FFmpeg
 最終的な連番JPEGからMP4動画を作成するために使用します。  
@@ -99,7 +92,7 @@ ffmpeg -version
 現在、以下の環境で動作確認しています。
 
 - macOS (Apple Silicon Mac)
-- Python 3.12
+- Python 3.12 (pyenv / venv)
 - Pillow
 - NumPy
 - FFmpeg 8.1
@@ -159,19 +152,42 @@ git clone https://github.com/ronowe55/miscellaneous.git
 cd miscellaneous/projects/camera/starryLandscape
 ```
 
-### 2. Pythonライブラリをインストール
+### 2. pyenvと仮想環境のセットアップ
+
+pyenvを使用してPython 3.12環境を用意し、プロジェクト専用の仮想環境を作成・有効化します。
 
 ```bash
-pip install Pillow numpy
+# 指定のPythonバージョンをインストール（未導入の場合）
+pyenv install 3.12.0
+
+# ディレクトリローカルのPythonバージョンを設定
+pyenv local 3.12.0
+
+# 仮想環境を作成 (.venv)
+python -m venv .venv
+
+# 仮想環境を有効化 (macOS / Linux)
+source .venv/bin/activate
+
+# (参考) Windowsの場合:
+# .venv\Scripts\activate
 ```
 
-### 3. スクリプトを実行
+### 3. Pythonライブラリのインストール
+
+`requirements.txt` を使用して必要な依存ライブラリ（Pillow, NumPyなど）を一括インストールします。
 
 ```bash
-python3 make_startrail.py
+pip install -r requirements.txt
 ```
 
-### 4. JPEGディレクトリを指定
+### 4. スクリプトを実行
+
+```bash
+python make_startrail.py
+```
+
+### 5. JPEGディレクトリを指定
 
 スクリプト起動後、JPEG画像が保存されているディレクトリを入力します。  
 例:
@@ -185,6 +201,7 @@ JPEG画像はGitリポジトリ内に置く必要はありません。
 ```text
 my-startrail-tool/
 ├── make_startrail.py
+├── requirements.txt
 ├── README.md
 └── .gitignore
 ```
@@ -199,14 +216,14 @@ my-startrail-tool/
 └── DSC09136.jpg
 ```
 
-### 5. START番号を入力
+### 6. START番号を入力
 
 例:
 ```text
 START > 8986
 ```
 
-### 6. END番号を入力
+### 7. END番号を入力
 
 例:
 ```text
@@ -216,7 +233,7 @@ END > 9136
 この場合、`9136 - 8986 + 1 = 151` となり、151枚が処理対象になります。  
 処理枚数はスクリプトが自動計算します。
 
-### 7. 出力先を指定
+### 8. 出力先を指定
 
 出力先を入力できます。
 ```text
@@ -393,8 +410,7 @@ JPEGは非可逆圧縮形式です。このスクリプトではできるだけ�
 
 ## ライセンス
 
-このプロジェクトのライセンスについては、リポジトリに含まれる `LICENSE` ファイルを参照してください。  
-ライセンスが設定されていない場合、コードの利用・改変・再配布については、作者へ確認してください。
+このプロジェクトのライセンスについては、リポジトリに含まれる [LICENSE](https://github.com/ronowe55/miscellaneous/blob/main/LICENSE) ファイルを参照してください。
 
 ---
 
