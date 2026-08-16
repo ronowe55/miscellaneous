@@ -43,6 +43,33 @@
 
 ---
 
+## 処理フロー
+
+```mermaid
+flowchart TD
+    Start([開始]) --> InputDir[JPEGディレクトリ / 連番範囲の指定]
+    InputDir --> Phase1[Phase 1: 元画像確認<br>ファイル存在 check / 解像度確認]
+    
+    Phase1 --> Phase2[Phase 2: 山の基準画像作成<br>最初の51枚の中央値から mountain_reference.jpg を生成]
+    Phase2 --> CheckRef{基準画像を確認}
+    
+    CheckRef -->|問題あり| Abort1[処理中断]
+    CheckRef -->|OK| Phase3[Phase 3: 山マスク作成<br>空と地上を分離する mountain_mask_preview.jpg を生成]
+    
+    Phase3 --> CheckMask{マスク画像を確認}
+    CheckMask -->|問題あり| Abort2[処理中断]
+    CheckMask -->|OK| Phase4[Phase 4: 5枚テスト合成<br>最初の5フレームでテストテスト画像 test_5frame_mountain.jpg を生成]
+    
+    Phase4 --> CheckTest{テスト画像を確認}
+    CheckTest -->|問題あり| Abort3[処理中断]
+    CheckTest -->|OK| Phase5[Phase 5: 全連番JPEG生成<br>空: 過去からの累積比較明合成<br>地上: 現在フレームを使用<br>star_frames/ 内に出力]
+    
+    Phase5 --> Phase6[Phase 6: MP4動画生成<br>FFmpeg を使用して H.264 MP4 動画を出力]
+    Phase6 --> End([完了: startrail_24fps.mp4])
+```
+
+---
+
 ## 作例
 
 実際に本スクリプトを使用して作成した星景タイムラプスです。
@@ -60,23 +87,13 @@ https://youtube.com/shorts/TnF1-cwzSlk
 - 出力：H.264 / MP4
 - フレームレート：24fps
 
+---
+
 ## 必要なソフトウェア
 
 ### Python
 Python 3.10以降を推奨します（開発環境：Python 3.12）。  
 [Python公式](https://www.python.org/)
-
-### Pillow
-JPEG画像の読み込み・保存、および画像処理に使用します。
-```bash
-pip install Pillow
-```
-
-### NumPy
-画像の画素単位の比較明合成や中央値計算に使用します。
-```bash
-pip install numpy
-```
 
 ### FFmpeg
 最終的な連番JPEGからMP4動画を作成するために使用します。  
@@ -159,16 +176,46 @@ git clone https://github.com/ronowe55/miscellaneous.git
 cd miscellaneous/projects/camera/starryLandscape
 ```
 
-### 2. Pythonライブラリをインストール
+### 2. Python環境の準備
+
+お使いの環境に合わせて、**【パターンA】ローカル環境に直接インストール**、または**【パターンB】pyenv / venv環境を構築**のいずれかを選択してください。
+
+#### 【パターンA】ローカル環境（システム環境）に直接インストールする場合
+既存のPython環境に直接ライブラリをインストールして実行します。
 
 ```bash
-pip install Pillow numpy
+pip install -r requirements.txt
 ```
+
+#### 【パターンB】pyenv + venv で仮想環境を作成する場合
+プロジェクト専用の分離された仮想環境を作成して実行します。
+
+```bash
+# 指定のPythonバージョンをインストール（未導入の場合）
+pyenv install 3.12.0
+
+# ディレクトリローカルのPythonバージョンを設定
+pyenv local 3.12.0
+
+# 仮想環境を作成 (.venv)
+python -m venv .venv
+
+# 仮想環境を有効化 (macOS / Linux)
+source .venv/bin/activate
+
+# (参考) Windowsの場合:
+# .venv\Scripts\activate
+
+# 仮想環境内に依存ライブラリをインストール
+pip install -r requirements.txt
+```
+
+---
 
 ### 3. スクリプトを実行
 
 ```bash
-python3 make_startrail.py
+python make_startrail.py
 ```
 
 ### 4. JPEGディレクトリを指定
@@ -185,6 +232,7 @@ JPEG画像はGitリポジトリ内に置く必要はありません。
 ```text
 my-startrail-tool/
 ├── make_startrail.py
+├── requirements.txt
 ├── README.md
 └── .gitignore
 ```
@@ -393,8 +441,7 @@ JPEGは非可逆圧縮形式です。このスクリプトではできるだけ�
 
 ## ライセンス
 
-このプロジェクトのライセンスについては、リポジトリに含まれる `LICENSE` ファイルを参照してください。  
-ライセンスが設定されていない場合、コードの利用・改変・再配布については、作者へ確認してください。
+このプロジェクトのライセンスについては、リポジトリに含まれる [LICENSE](https://github.com/ronowe55/miscellaneous/blob/main/LICENSE) ファイルを参照してください。
 
 ---
 
