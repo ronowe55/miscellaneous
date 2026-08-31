@@ -9,10 +9,24 @@ total_cost_usd is cumulative *within* a session, not across sessions) and
 adds it into a permanent, ever-growing daily CSV so the record survives
 even after Claude Code prunes old session transcripts.
 
+The first time a given session_id is observed, its cost-so-far is only used
+to seed the baseline — it does NOT get credited as a delta. Otherwise a
+session that had already been running for a while before this hook started
+tracking it (right after installing this script, after session-state.json
+was deleted/reset, or when switching over from a different cost-tracking
+method that already counted this session's cost, e.g.
+ccusage-based/update-cost-history.py) would have its entire accumulated
+cost double-counted on top of whatever was already recorded for it
+elsewhere. The tradeoff: a brand new session's very first turn is not
+counted either, which undercounts by a negligible amount (usually a
+fraction of a cent).
+
 Files (all under ~/.claude/cost-tracker/):
   session-state.json  - {session_id: last_seen_total_cost_usd}, used only
-                         to compute today's delta; safe to delete anytime
-                         (worst case: today's partial total undercounts).
+                         to compute each turn's delta; safe to delete
+                         anytime (worst case: today's partial total
+                         undercounts, since every currently-open session
+                         looks "new" again on its next turn).
   cost-history.csv     - date,total_cost_usd,... — the permanent record.
                          Reading tolerates extra trailing columns, so this
                          file can be shared with ccusage-based/update-cost-history.py
@@ -86,8 +100,13 @@ def main():
     grand_total_line = ""
 
     if isinstance(session_cost, (int, float)):
-        previous = state.get(session_id, 0.0)
-        delta = session_cost - previous if session_cost > previous else 0.0
+        if session_id in state:
+            previous = state[session_id]
+            delta = session_cost - previous if session_cost > previous else 0.0
+        else:
+            # First sight of this session: seed the baseline only, don't
+            # credit its cost-so-far as new (see module docstring).
+            delta = 0.0
 
         # Write the history (the durable ledger) before the state file (just
         # a cursor). If the process dies in between, the next run recomputes
