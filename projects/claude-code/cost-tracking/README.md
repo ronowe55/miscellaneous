@@ -100,7 +100,7 @@ cd miscellaneous/projects/claude-code/cost-tracking
 出力例：
 ```
 当日の使用量(2026-08-31): $1.28
-月間制限: $20 固定
+月間制限: $20
 累計使用量: $6.40
 使用割合: 32.0%
 ```
