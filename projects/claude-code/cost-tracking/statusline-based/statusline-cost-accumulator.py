@@ -13,9 +13,17 @@ Files (all under ~/.claude/cost-tracker/):
   session-state.json  - {session_id: last_seen_total_cost_usd}, used only
                          to compute today's delta; safe to delete anytime
                          (worst case: today's partial total undercounts).
-  cost-history.csv     - date,total_cost_usd — the permanent record.
+  cost-history.csv     - date,total_cost_usd,... — the permanent record.
+                         Reading tolerates extra trailing columns, so this
+                         file can be shared with ccusage-based/update-cost-history.py
+                         (which also writes total_tokens/models_used columns).
+
+This script assumes a single Claude Code session writes to these files at a
+time. Two sessions finishing a turn at the same instant can race on the
+unlocked read-modify-write and one update can be lost; not handled here.
 """
 
+import csv
 import json
 import os
 import sys
@@ -46,11 +54,12 @@ def atomic_write(path, text):
 def load_history():
     rows = {}
     if HISTORY_FILE.exists():
-        for line in HISTORY_FILE.read_text(encoding="utf-8").splitlines()[1:]:
-            if not line.strip():
-                continue
-            d, cost = line.split(",", 1)
-            rows[d] = float(cost)
+        with HISTORY_FILE.open(newline="", encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                try:
+                    rows[row["date"]] = float(row["total_cost_usd"])
+                except (KeyError, ValueError, TypeError):
+                    continue
     return rows
 
 
@@ -79,13 +88,19 @@ def main():
     if isinstance(session_cost, (int, float)):
         previous = state.get(session_id, 0.0)
         delta = session_cost - previous if session_cost > previous else 0.0
-        state[session_id] = session_cost
-        atomic_write(STATE_FILE, json.dumps(state))
 
+        # Write the history (the durable ledger) before the state file (just
+        # a cursor). If the process dies in between, the next run recomputes
+        # the same delta from the same `previous` baseline and re-adds it —
+        # a rare, narrow double-count window — instead of the state file
+        # already having moved on and silently dropping this delta forever.
         history = load_history()
         today = date.today().isoformat()
         history[today] = history.get(today, 0.0) + delta
         save_history(history)
+
+        state[session_id] = session_cost
+        atomic_write(STATE_FILE, json.dumps(state))
 
         grand_total = sum(history.values())
         grand_total_line = f" | All-time: ${grand_total:,.2f}"

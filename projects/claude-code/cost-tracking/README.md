@@ -51,7 +51,7 @@ Claude Codeの利用コストを、毎日`/usage`を手動で確認・記録す�
    {
      "statusLine": {
        "type": "command",
-       "command": "/Users/YOU/.claude/statusline-cost-accumulator.py"
+       "command": "/Users/YOU/.claude/cost-tracker/statusline-cost-accumulator.py"
      }
    }
    ```
