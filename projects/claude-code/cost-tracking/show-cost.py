@@ -14,7 +14,9 @@ import csv
 from datetime import date
 from pathlib import Path
 
-# Adjust to whatever your own plan's monthly budget actually is.
+# $200 is just the default this sample shipped with (it matched the Claude
+# Max 20x plan on the machine it was written on). Change it to whatever your
+# own plan's monthly budget actually is.
 MONTHLY_LIMIT_USD = 200.0
 
 HISTORY_FILE = Path.home() / ".claude" / "cost-tracker" / "cost-history.csv"
