@@ -22,11 +22,24 @@ Claude Codeの利用コストを、毎日`/usage`を手動で確認・記録す�
 
 ---
 
+## 0. リポジトリを取得
+
+以下のセットアップ手順は、このリポジトリを取得した状態から進めます。
+
+```bash
+git clone https://github.com/ronowe55/miscellaneous.git
+cd miscellaneous/projects/claude-code/cost-tracking
+```
+
+---
+
 ## `ccusage-based/` の使い方
 
-1. `update-cost-history.py` を `~/.claude/cost-tracker/update-cost-history.py` に配置し、実行権限を付与
+1. `~/.claude/cost-tracker/` に配置し、実行権限を付与
    ```bash
-   chmod +x update-cost-history.py
+   mkdir -p ~/.claude/cost-tracker
+   cp ccusage-based/update-cost-history.py ~/.claude/cost-tracker/
+   chmod +x ~/.claude/cost-tracker/update-cost-history.py
    ```
 2. 記録したいタイミングで手動実行
    ```bash
@@ -45,17 +58,27 @@ Claude Codeの利用コストを、毎日`/usage`を手動で確認・記録す�
 
 ## `statusline-based/` の使い方
 
-1. `statusline-cost-accumulator.py` を `~/.claude/cost-tracker/statusline-cost-accumulator.py` に配置し、実行権限を付与
+1. `~/.claude/cost-tracker/` に配置し、実行権限を付与
+   ```bash
+   mkdir -p ~/.claude/cost-tracker
+   cp statusline-based/statusline-cost-accumulator.py ~/.claude/cost-tracker/
+   chmod +x ~/.claude/cost-tracker/statusline-cost-accumulator.py
+   ```
 2. `~/.claude/settings.json` の `statusLine` に登録
-   ```json
+
+   `~/.claude/settings.json` がまだ無い場合：
+   ```bash
+   mkdir -p ~/.claude
+   cat > ~/.claude/settings.json << EOF
    {
      "statusLine": {
        "type": "command",
-       "command": "/Users/YOU/.claude/cost-tracker/statusline-cost-accumulator.py"
+       "command": "$HOME/.claude/cost-tracker/statusline-cost-accumulator.py"
      }
    }
+   EOF
    ```
-   （`/Users/YOU` の部分は実際のホームディレクトリに置き換えてください）
+   すでに `~/.claude/settings.json` があり他の設定も入っている場合は、上書きせず `statusLine` キーだけを手動で追記してください。
 3. Claude Codeを使うだけで、ターン毎に自動的に呼ばれて `cost-history.csv` が更新されます。ターミナル下部には
    ```
    Opus | Session: $0.25 | All-time: $0.30
@@ -70,9 +93,14 @@ Claude Codeの利用コストを、毎日`/usage`を手動で確認・記録す�
 
 `ccusage-based/`・`statusline-based/`どちらの方法で作った`cost-history.csv`も、`date,total_cost_usd`という共通の列を持っているので、[`show-cost.py`](./show-cost.py)で共通してレポートできます。
 
-```bash
-python3 show-cost.py
-```
+1. `~/.claude/cost-tracker/` に配置
+   ```bash
+   cp show-cost.py ~/.claude/cost-tracker/
+   ```
+2. 実行
+   ```bash
+   python3 ~/.claude/cost-tracker/show-cost.py
+   ```
 
 出力例：
 ```
@@ -90,9 +118,11 @@ python3 show-cost.py
 エイリアスに登録しておくと、`cost`と打つだけで確認できて便利です。
 
 ```bash
-# ~/.zshrc や ~/.bashrc に追記
-alias cost="python3 ~/.claude/cost-tracker/show-cost.py"
+echo 'alias cost="python3 ~/.claude/cost-tracker/show-cost.py"' >> ~/.zshrc
+source ~/.zshrc
 ```
+
+（bashの場合は `~/.zshrc` を `~/.bashrc` に置き換えてください）
 
 ---
 
