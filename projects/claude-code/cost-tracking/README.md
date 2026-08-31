@@ -69,15 +69,10 @@ cd miscellaneous/projects/claude-code/cost-tracking
    `~/.claude/settings.json` がまだ無い場合：
    ```bash
    mkdir -p ~/.claude
-   cat > ~/.claude/settings.json << EOF
-   {
-     "statusLine": {
-       "type": "command",
-       "command": "$HOME/.claude/cost-tracker/statusline-cost-accumulator.py"
-     }
-   }
-   EOF
+   printf '{\n  "statusLine": {\n    "type": "command",\n    "command": "%s/.claude/cost-tracker/statusline-cost-accumulator.py"\n  }\n}\n' "$HOME" > ~/.claude/settings.json
    ```
+   （ヒアドキュメントではなく1行の`printf`にしているのは、この手順書のようにMarkdownの番号付きリスト内でコードブロックがインデントされていると、ヒアドキュメントの終端行`EOF`も字下げされてしまい、GitHub上のレンダリング経由のコピーボタンを使わず生のテキストをそのまま貼り付けた場合にシェルが閉じずにハングするためです）
+
    すでに `~/.claude/settings.json` があり他の設定も入っている場合は、上書きせず `statusLine` キーだけを手動で追記してください。
 3. Claude Codeを使うだけで、ターン毎に自動的に呼ばれて `cost-history.csv` が更新されます。ターミナル下部には
    ```
@@ -115,10 +110,12 @@ cd miscellaneous/projects/claude-code/cost-tracking
 - **累計使用量** — 今月（当月の年月に前方一致する行すべて）の合計。月が変われば自動的にリセットされます
 - **使用割合** — 累計使用量 ÷ 月間制限
 
-エイリアスに登録しておくと、`cost`と打つだけで確認できて便利です。
+**注意:** `MONTHLY_LIMIT_USD`を`~/.claude/cost-tracker/show-cost.py`側で直接書き換えた場合、この`README`のセットアップ手順を再度なぞって`cp show-cost.py ~/.claude/cost-tracker/`を実行すると、リポジトリ側のデフォルト値で上書きされます。再実行する前に差分を確認するか、書き換えはリポジトリ側の`show-cost.py`に対して行ってから配置し直してください。
+
+エイリアスに登録しておくと、`cost`と打つだけで確認できて便利です（すでに同じ行がある場合は追記しないようにしています）。
 
 ```bash
-echo 'alias cost="python3 ~/.claude/cost-tracker/show-cost.py"' >> ~/.zshrc
+grep -qxF 'alias cost="python3 ~/.claude/cost-tracker/show-cost.py"' ~/.zshrc 2>/dev/null || echo 'alias cost="python3 ~/.claude/cost-tracker/show-cost.py"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
