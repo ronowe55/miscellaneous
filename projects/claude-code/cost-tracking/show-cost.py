@@ -46,7 +46,7 @@ def main():
     percentage = (month_cost / MONTHLY_LIMIT_USD) * 100 if MONTHLY_LIMIT_USD else 0.0
 
     print(f"当日の使用量({today_str}): ${today_cost:,.2f}")
-    print(f"月間制限: ${MONTHLY_LIMIT_USD:,.0f} 固定")
+    print(f"月間制限: ${MONTHLY_LIMIT_USD:,.0f}")
     print(f"累計使用量: ${month_cost:,.2f}")
     print(f"使用割合: {percentage:.1f}%")
 
