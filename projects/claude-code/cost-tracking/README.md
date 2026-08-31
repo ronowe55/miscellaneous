@@ -22,11 +22,24 @@ Claude Codeの利用コストを、毎日`/usage`を手動で確認・記録す�
 
 ---
 
+## 0. リポジトリを取得
+
+以下のセットアップ手順は、このリポジトリを取得した状態から進めます。
+
+```bash
+git clone https://github.com/ronowe55/miscellaneous.git
+cd miscellaneous/projects/claude-code/cost-tracking
+```
+
+---
+
 ## `ccusage-based/` の使い方
 
-1. `update-cost-history.py` を `~/.claude/cost-tracker/update-cost-history.py` に配置し、実行権限を付与
+1. `~/.claude/cost-tracker/` に配置し、実行権限を付与
    ```bash
-   chmod +x update-cost-history.py
+   mkdir -p ~/.claude/cost-tracker
+   cp ccusage-based/update-cost-history.py ~/.claude/cost-tracker/
+   chmod +x ~/.claude/cost-tracker/update-cost-history.py
    ```
 2. 記録したいタイミングで手動実行
    ```bash
@@ -45,17 +58,22 @@ Claude Codeの利用コストを、毎日`/usage`を手動で確認・記録す�
 
 ## `statusline-based/` の使い方
 
-1. `statusline-cost-accumulator.py` を `~/.claude/cost-tracker/statusline-cost-accumulator.py` に配置し、実行権限を付与
-2. `~/.claude/settings.json` の `statusLine` に登録
-   ```json
-   {
-     "statusLine": {
-       "type": "command",
-       "command": "/Users/YOU/.claude/cost-tracker/statusline-cost-accumulator.py"
-     }
-   }
+1. `~/.claude/cost-tracker/` に配置し、実行権限を付与
+   ```bash
+   mkdir -p ~/.claude/cost-tracker
+   cp statusline-based/statusline-cost-accumulator.py ~/.claude/cost-tracker/
+   chmod +x ~/.claude/cost-tracker/statusline-cost-accumulator.py
    ```
-   （`/Users/YOU` の部分は実際のホームディレクトリに置き換えてください）
+2. `~/.claude/settings.json` の `statusLine` に登録
+
+   `~/.claude/settings.json` がまだ無い場合：
+   ```bash
+   mkdir -p ~/.claude
+   printf '{\n  "statusLine": {\n    "type": "command",\n    "command": "%s/.claude/cost-tracker/statusline-cost-accumulator.py"\n  }\n}\n' "$HOME" > ~/.claude/settings.json
+   ```
+   （ヒアドキュメントではなく1行の`printf`にしているのは、この手順書のようにMarkdownの番号付きリスト内でコードブロックがインデントされていると、ヒアドキュメントの終端行`EOF`も字下げされてしまい、GitHub上のレンダリング経由のコピーボタンを使わず生のテキストをそのまま貼り付けた場合にシェルが閉じずにハングするためです）
+
+   すでに `~/.claude/settings.json` があり他の設定も入っている場合は、上書きせず `statusLine` キーだけを手動で追記してください。
 3. Claude Codeを使うだけで、ターン毎に自動的に呼ばれて `cost-history.csv` が更新されます。ターミナル下部には
    ```
    Opus | Session: $0.25 | All-time: $0.30
@@ -70,29 +88,38 @@ Claude Codeの利用コストを、毎日`/usage`を手動で確認・記録す�
 
 `ccusage-based/`・`statusline-based/`どちらの方法で作った`cost-history.csv`も、`date,total_cost_usd`という共通の列を持っているので、[`show-cost.py`](./show-cost.py)で共通してレポートできます。
 
-```bash
-python3 show-cost.py
-```
+1. `~/.claude/cost-tracker/` に配置
+   ```bash
+   cp show-cost.py ~/.claude/cost-tracker/
+   ```
+2. 実行
+   ```bash
+   python3 ~/.claude/cost-tracker/show-cost.py
+   ```
 
 出力例：
 ```
-当日の使用量(2026-08-31): $4.96
-月間制限: $200 固定
-累計使用量: $27.50
-使用割合: 13.8%
+当日の使用量(2026-08-31): $1.28
+月間制限: $20 固定
+累計使用量: $6.40
+使用割合: 32.0%
 ```
 
 - **当日の使用量** — `cost-history.csv`の今日の日付の行
-- **月間制限** — スクリプト冒頭の `MONTHLY_LIMIT_USD` 定数（デフォルト$200固定）。契約プランに合わせて書き換えてください
+- **月間制限** — スクリプト冒頭の `MONTHLY_LIMIT_USD` 定数（デフォルト$20固定）。この$20という値はこのサンプルを作成した環境の契約プラン（Claude Proプラン）の月額に合わせただけの初期値なので、実際に使う際は自分の契約プランの月額に書き換えてください（例: Max 20xなら200、Max 5xなら100）
 - **累計使用量** — 今月（当月の年月に前方一致する行すべて）の合計。月が変われば自動的にリセットされます
 - **使用割合** — 累計使用量 ÷ 月間制限
 
-エイリアスに登録しておくと、`cost`と打つだけで確認できて便利です。
+**注意:** `MONTHLY_LIMIT_USD`を`~/.claude/cost-tracker/show-cost.py`側で直接書き換えた場合、この`README`のセットアップ手順を再度なぞって`cp show-cost.py ~/.claude/cost-tracker/`を実行すると、リポジトリ側のデフォルト値で上書きされます。再実行する前に差分を確認するか、書き換えはリポジトリ側の`show-cost.py`に対して行ってから配置し直してください。
+
+エイリアスに登録しておくと、`cost`と打つだけで確認できて便利です（すでに同じ行がある場合は追記しないようにしています）。
 
 ```bash
-# ~/.zshrc や ~/.bashrc に追記
-alias cost="python3 ~/.claude/cost-tracker/show-cost.py"
+grep -qxF 'alias cost="python3 ~/.claude/cost-tracker/show-cost.py"' ~/.zshrc 2>/dev/null || echo 'alias cost="python3 ~/.claude/cost-tracker/show-cost.py"' >> ~/.zshrc
+source ~/.zshrc
 ```
+
+（bashの場合は `~/.zshrc` を `~/.bashrc` に置き換えてください）
 
 ---
 
